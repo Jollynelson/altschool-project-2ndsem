@@ -1,0 +1,35 @@
+---
+- name: Deploy LAMP Stack
+  hosts: slave
+  become: true
+
+  tasks:
+  - name: Copy deployment script
+    copy:
+      src: deploy_lamp.sh
+      dest: /tmp/deploy_lamp.sh
+      mode: 0755
+
+  - name: Run deployment script
+    script: /tmp/deploy_lamp.sh
+
+  - name: Check web server status
+    service:
+      name: apache2
+      state: started
+
+  - name: Verify application accessibility (Needs Adjustment)
+    uri:
+      url: http://<192.168.1.100>
+      status_code: 200
+      register: app_status
+
+  - debug:
+      msg: "Application accessible: {{ app_status.status }}"
+
+- name: check server uptime
+  cron:
+    name: "Check server uptime"
+    job: "/bin/bash -c 'uptime >> /var/log/uptime_check.log'"
+    minute: "0"
+    hour: "0"
